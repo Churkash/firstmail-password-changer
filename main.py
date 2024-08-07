@@ -29,12 +29,11 @@ def format_line(line):
         print("Incorrect mail format.")
         exit(1)
         
-    if len(parts) <= 0 or len(parts) >= 4:
+    if len(parts) <= 1 or len(parts) >= 4:
         print("Incorrect mail format.")
         exit(1)
             
-    else:
-        return parts[0], parts[1]
+    return parts[0], parts[1]
     
     
 class Firstmail():
@@ -47,8 +46,7 @@ class Firstmail():
                     "npassword": npass
                 }
                 
-                resp = session.post("https://api.firstmail.ltd/v1/mail/change/password", json=payload)
-                response = resp.text
+                response = session.post("https://api.firstmail.ltd/v1/mail/change/password", json=payload).text
                 
                 if resp.status_code == 200:
                     if "Password was updated" in response:
@@ -65,6 +63,11 @@ class Firstmail():
                     
                     elif "Required username and cpassword and npassword" in response:
                         logging.error("Required username and cpassword and npassword (probably some of config values are missing).", mail, resp.status_code)
+                        return False, None
+
+                    else:
+                        logging.error(f"Unknown error {resp.text}", mail, resp.status_code)
+                        return True, 'Unknown_error'
                 
                 elif resp.status_code == 403:
                     if "IP missmatch" in response:
@@ -104,7 +107,7 @@ def thread(line):
         npass = config["Password"]["new_password"]
     
     result, file = Firstmail.change_password(mail, cpass, npass)
-    if result == True:
+    if result:
         if not os.path.exists(f'./Output/{file}.txt'):
             with open(f'./Output/{file}.txt', 'a') as file:
                 file.write(f"{mail}:{npass}\n")
@@ -115,7 +118,7 @@ def thread(line):
 
 
 with ThreadPoolExecutor(max_workers=config["Main"]["Threads"]) as executor:
-    for _ in mails:
-        executor.submit(thread, _)
+    for mail in mails:
+        executor.submit(thread, mail)
 
                     
