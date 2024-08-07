@@ -96,7 +96,6 @@ class Firstmail():
             except Exception as e:
                 print(e)
                 time.sleep(1)
-                continue
             
             
 def thread(line):
