@@ -46,7 +46,8 @@ class Firstmail():
                     "npassword": npass
                 }
                 
-                response = session.post("https://api.firstmail.ltd/v1/mail/change/password", json=payload).text
+                resp = session.post("https://api.firstmail.ltd/v1/mail/change/password", json=payload)
+                response = resp.text
                 
                 if resp.status_code == 200:
                     if "Password was updated" in response:
